@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
+<meta name="theme-color" content="#0066cc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Python en el Navegador · Plataforma Educativa</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+  /* ============================================================
+     VARIABLES DE TEMA (claro por defecto, oscuro por prefers-color-scheme)
+     ============================================================ */
+  :root {
+    --bg: #ffffff;
+    --bg-2: #f4f6fa;
+    --bg-3: #e8ecf3;
+    --text: #14171c;
+    --text-2: #5a6272;
+    --border: #d6dbe5;
+    --primary: #0066cc;
+    --primary-2: #0052a3;
+    --primary-fg: #ffffff;
+    --error: #d32f2f;
+    --warn: #b45309;
+    --ok: #15803d;
+    --console-bg: #0f1117;
+    --console-fg: #d4d4d4;
+    --console-input: #fbbf24;
+    --console-prompt: #60d5fa;
+    --console-error: #f87171;
+    --shadow: 0 8px 24px rgba(0,0,0,.12);
+    --font-mono: 'JetBrains Mono','Fira Code','SF Mono','Menlo','Consolas','Courier New',monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b;
+      --bg-2: #1a1f27;
+      --bg-3: #232a35;
+      --text: #e6e9ef;
+      --text-2: #97a1b3;
+      --border: #313a48;
+      --primary: #4a9eff;
+      --primary-2: #6db3ff;
+      --primary-fg: #0a0e14;
+      --error: #ff6b6b;
+      --warn: #fbbf24;
+      --ok: #34d399;
+      --console-bg: #0a0d13;
+      --console-fg: #d4d4d4;
+      --shadow: 0 8px 24px rgba(0,0,0,.45);
+    }
+  }
+  [data-theme="light"] {
+    --bg: #ffffff; --bg-2: #f4f6fa; --bg-3: #e8ecf3;
+    --text: #14171c; --text-2: #5a6272; --border: #d6dbe5;
+    --primary: #0066cc; --primary-2: #0052a3; --primary-fg: #ffffff;
+    --error: #d32f2f; --ok: #15803d;
+    --console-bg: #0f1117;
+  }
+  [data-theme="dark"] {
+    --bg: #12151b; --bg-2: #1a1f27; --bg-3: #232a35;
+    --text: #e6e9ef; --text-2: #97a1b3; --border: #313a48;
+    --primary: #4a9eff; --primary-2: #6db3ff; --primary-fg: #0a0e14;
+    --error: #ff6b6b; --ok: #34d399;
+    --console-bg: #0a0d13;
+  }
+
+  /* ============================================================
+     RESET + BASE
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .2s ease, color .2s ease;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  /* ============================================================
+     HEADER
+     ============================================================ */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: clamp(15px, 4vw, 18px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  header h1 .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .header-controls { display: flex; align-items: center; gap: 8px; }
+  #student-badge {
+    display: none;
+    font-size: 12px;
+    padding: 4px 10px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-2);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #student-badge.visible { display: inline-block; }
+  #theme-toggle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     LAYOUT PRINCIPAL
+     ============================================================ */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+  }
+  .toolbar button {
+    flex: 1 1 auto;
+    min-width: 96px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 8px;
+    transition: transform .08s ease, background .15s ease, border-color .15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .toolbar button:active { transform: scale(.97); }
+  .toolbar button:hover:not(:disabled) { background: var(--bg-3); }
+  .toolbar button.primary {
+    background: var(--primary);
+    color: var(--primary-fg);
+    border-color: var(--primary);
+  }
+  .toolbar button.primary:hover:not(:disabled) {
+    background: var(--primary-2);
+    border-color: var(--primary-2);
+  }
+  .toolbar button .ico { font-size: 14px; line-height: 1; }
+
+  .workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+  .pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-2);
+    background: var(--bg-3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .pane-header .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pane-header button {
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-2);
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Editor */
+  #code-editor {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    resize: none;
+    padding: 12px;
+    border: none;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.55;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    white-space: pre;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #code-editor::placeholder { color: var(--text-2); opacity: .7; }
+
+  /* Consola */
+  #console-output {
+    flex: 1;
+    margin: 0;
+    padding: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--console-bg);
+    color: var(--console-fg);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .out-normal { color: var(--console-fg); }
+  .out-error  { color: var(--console-error); }
+  .out-prompt { color: var(--console-prompt); }
+  .out-input  { color: var(--console-input); font-weight: 600; }
+  .out-system { color: #8b95a5; font-style: italic; }
+
+  /* ============================================================
+     LAYOUT RESPONSIVE
+     ============================================================ */
+  @media (max-width: 759px) {
+    main { padding: 6px; gap: 6px; }
+    .workspace { gap: 6px; }
+    .pane.editor-pane { flex: 0 0 38vh; }
+    .pane.console-pane { flex: 1 1 auto; }
+    .toolbar button { min-width: 0; flex: 1 1 calc(33.333% - 6px); padding: 9px 8px; font-size: 12px; }
+  }
+  @media (min-width: 760px) {
+    main { padding: 12px; gap: 12px; }
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
+      gap: 12px;
+    }
+    .toolbar button { flex: 0 1 auto; min-width: 120px; }
+    #code-editor { font-size: 14px; }
+    #console-output { font-size: 13px; }
+  }
+
+  /* ============================================================
+     STATUS BAR
+     ============================================================ */
+  #status-bar {
+    padding: 6px 14px;
+    font-size: 11.5px;
+    color: var(--text-2);
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  #status-bar .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-2);
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  #status-bar.loading .dot { background: var(--warn); animation: pulse 1.2s infinite; }
+  #status-bar.ready .dot { background: var(--ok); }
+  #status-bar.running .dot { background: var(--primary); animation: pulse 1s infinite; }
+  #status-bar.error .dot { background: var(--error); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  /* ============================================================
+     MODALES
+     ============================================================ */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: fadeIn .15s ease;
+  }
+  .modal[hidden] { display: none; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-content {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: var(--shadow);
+    animation: slideUp .18s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-content h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .modal-prompt {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    margin-bottom: 12px;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .modal-content input[type="text"],
+  .modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-2);
+    color: var(--text);
+    font-size: 16px; /* previene zoom en iOS */
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .modal-content input[type="text"]:focus,
+  .modal-content textarea:focus { border-color: var(--primary); }
+  .modal-content textarea {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 220px;
+    resize: vertical;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .modal-actions button {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text);
+    transition: transform .08s;
+  }
+  .modal-actions button:active { transform: scale(.97); }
+  .modal-actions button.primary {
+    background: var(--primary);
+    color: var(--primary-fg);
+    border-color: var(--primary);
+  }
+  .modal-actions button.primary:hover { background: var(--primary-2); }
+  .modal-actions button.danger {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+  .modal-help {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 759px) {
+    .modal { align-items: flex-end; padding: 0; }
+    .modal-content {
+      border-radius: 16px 16px 0 0;
+      max-width: none;
+      max-height: 90vh;
+      padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+    .modal-content.large { max-height: 92vh; }
+    .modal-actions button { flex: 1 1 auto; }
+  }
+
+  /* Bloqueo de scroll de fondo cuando hay modal */
+  body.modal-open { overflow: hidden; }
+
+  /* Toast / avisos */
+  .toast {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transition: opacity .2s, transform .2s;
+    z-index: 2000;
+    pointer-events: none;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <span class="logo" aria-hidden="true">Py</span>
+    <span>Python en el Navegador</span>
+  </h1>
+  <div class="header-controls">
+    <span id="student-badge" title="Nombre del alumno"></span>
+    <button id="theme-toggle" type="button" aria-label="Cambiar tema">🌗</button>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar" role="toolbar" aria-label="Acciones">
+    <button id="btn-upload" type="button">
+      <span class="ico" aria-hidden="true">📁</span> Subir archivo
+    </button>
+    <button id="btn-paste" type="button">
+      <span class="ico" aria-hidden="true">📋</span> Pegar código
+    </button>
+    <button id="btn-run" type="button" class="primary" disabled>
+      <span class="ico" aria-hidden="true">▶</span> Ejecutar
+    </button>
+    <button id="btn-clear" type="button">
+      <span class="ico" aria-hidden="true">🧹</span> Limpiar
+    </button>
+    <button id="btn-pdf" type="button">
+      <span class="ico" aria-hidden="true">📄</span> Exportar PDF
+    </button>
+  </div>
+
+  <!-- Input file oculto: accept amplio para máxima compatibilidad móvil -->
+  <input
+    type="file"
+    id="file-input"
+    accept=".py,.txt,text/plain,application/octet-stream,*/*"
+    hidden
+  >
+
+  <div class="workspace">
+    <section class="pane editor-pane" aria-label="Editor de código">
+      <div class="pane-header">
+        <span class="tag">📝 Código Python</span>
+        <span id="code-stats" style="font-weight:600;text-transform:none;letter-spacing:0;">0 líneas</span>
+      </div>
+      <textarea
+        id="code-editor"
+        spellcheck="false"
+        autocorrect="off"
+        autocapitalize="off"
+        autocomplete="off"
+        wrap="off"
+        placeholder="# Escribe tu código Python aquí...
+# Ejemplo:
+# nombre = input('¿Cómo te llamas? ')
+# print(f'¡Hola, {nombre}!')"
+        aria-label="Editor de código Python"
+      ></textarea>
+    </section>
+
+    <section class="pane console-pane" aria-label="Consola de salida">
+      <div class="pane-header">
+        <span class="tag">💻 Consola</span>
+        <button id="btn-clear-console" type="button">Limpiar</button>
+      </div>
+      <pre id="console-output" aria-live="polite" aria-label="Salida de la consola"></pre>
+    </section>
+  </div>
+</main>
+
+<div id="status-bar" class="loading" role="status" aria-live="polite">
+  <span class="dot" aria-hidden="true"></span>
+  <span id="status-text">Cargando Python…</span>
+</div>
+
+<!-- ============================================================
+     MODAL: ENTRADA DE DATOS (input de Python)
+     ============================================================ -->
+<div id="modal-input" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-input-title">
+  <div class="modal-content">
+    <h3 id="modal-input-title">Entrada de datos</h3>
+    <div class="modal-prompt" id="input-prompt-display"></div>
+    <input type="text" id="input-field" placeholder="Escribe y pulsa Enviar…"
+           autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false">
+    <div class="modal-help">Pulsa <strong>Enter</strong> para enviar o <strong>Esc</strong> para cancelar.</div>
+    <div class="modal-actions">
+      <button type="button" id="input-cancel">Cancelar</button>
+      <button type="button" id="input-submit" class="primary">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: PEGAR CÓDIGO (fallback móvil)
+     ============================================================ -->
+<div id="modal-paste" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-paste-title">
+  <div class="modal-content large">
+    <h3 id="modal-paste-title">Pegar código Python</h3>
+    <div class="modal-help" style="margin-top:0;margin-bottom:8px;">
+      Útil si el explorador de archivos de tu celular no responde.
+      Copia y pega el contenido de tu archivo <code>.py</code>.
+    </div>
+    <textarea id="paste-field" placeholder="# Pega aquí el código…" spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <button type="button" id="paste-cancel">Cancelar</button>
+      <button type="button" id="paste-submit" class="primary">Cargar código</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: NOMBRE DEL ALUMNO (para PDF)
+     ============================================================ -->
+<div id="modal-name" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-name-title">
+  <div class="modal-content">
+    <h3 id="modal-name-title">Nombre del alumno</h3>
+    <div class="modal-help" style="margin-top:0;margin-bottom:10px;">
+      Se usará en el reporte PDF. Puedes cambiarlo cuando quieras.
+    </div>
+    <input type="text" id="name-field" placeholder="Ej: Ana García" autocomplete="name">
+    <div class="modal-actions">
+      <button type="button" id="name-cancel">Cancelar</button>
+      <button type="button" id="name-submit" class="primary">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CONFIRMACIÓN (cancelar ejecución)
+     ============================================================ -->
+<div id="modal-confirm" class="modal" hidden role="dialog" aria-modal="true">
+  <div class="modal-content">
+    <h3 id="confirm-title">Confirmar</h3>
+    <p id="confirm-message" style="color:var(--text-2);line-height:1.5;margin:0 0 4px;"></p>
+    <div class="modal-actions">
+      <button type="button" id="confirm-cancel">Cancelar</button>
+      <button type="button" id="confirm-ok" class="danger">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ============================================================
+     LIBRERÍAS EXTERNAS
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+/* ================================================================
+   BOOTSTRAP PYTHON
+   Se ejecuta una única vez tras cargar Pyodide.
+   Define:
+     - Streams suppressables (para la estrategia de reintentos)
+     - input() personalizado que usa un modal HTML
+     - Cola de entradas ya proporcionadas por el usuario
+   ================================================================ */
+const PYTHON_BOOTSTRAP = String.raw`
+import sys
+import builtins
+
+# --- Estado global de la sesión (persistente entre reintentos) ---
+_input_queue = []      # valores que el usuario ya ha introducido
+_input_index = 0       # cuántos de esos valores hemos consumido ya
+_echoed_count = 0      # cuántos hemos mostrado en consola (para no duplicar)
+_suppress = False      # True durante replay: no re-emitir salida ya mostrada
+
+class _SuppressStream:
+    """Wrapper de stdout/stderr que respeta el flag _suppress."""
+    def __init__(self, base):
+        self._base = base
+    def write(self, s):
+        if not _suppress:
+            self._base.write(s)
+        return len(s) if hasattr(s, '__len__') else 0
+    def flush(self):
+        try:
+            self._base.flush()
+        except Exception:
+            pass
+    def __getattr__(self, name):
+        return getattr(self._base, name)
+
+# Guardamos originales y envolvemos
+_orig_stdout = sys.stdout
+_orig_stderr = sys.stderr
+sys.stdout = _SuppressStream(_orig_stdout)
+sys.stderr = _SuppressStream(_orig_stderr)
+
+def _custom_input(prompt=''):
+    """
+    Reemplazo de input() que:
+      - Si hay un valor en cola, lo devuelve (modo replay).
+      - Si no, lanza __NEED_INPUT__ para que JS muestre el modal HTML.
+    """
+    global _input_index, _echoed_count, _suppress
+
+    if _input_index < len(_input_queue):
+        value = _input_queue[_input_index]
+        _input_index += 1
+
+        # Emitir el eco del valor solo si aún no se mostró
+        if _input_index > _echoed_count:
+            _suppress = False
+            sys.stdout.write('\x00\x01INPUT\x01' + value + '\x01\x00\n')
+            sys.stdout.flush()
+            _echoed_count = _input_index
+            # Si quedan más valores en cola, reactivar supresión
+            if _input_index < len(_input_queue):
+                _suppress = True
+            else:
+                _suppress = False
+        return value
+
+    # No hay valor en cola: pedir al usuario vía modal HTML
+    if prompt and not _suppress:
+        sys.stdout.write('\x00\x01PROMPT\x01' + prompt + '\x01\x00')
+        sys.stdout.flush()
+
+    # Guardar el prompt para que JS lo lea
+    try:
+        import js
+        js._pendingPrompt = prompt or ''
+    except Exception:
+        pass
+
+    raise RuntimeError('__NEED_INPUT__')
+
+builtins.input = _custom_input
+
+# Helper para resetear la sesión (lo llama JS antes de cada ejecución nueva)
+def _reset_session():
+    global _input_index, _echoed_count, _suppress
+    _input_queue.clear()
+    _input_index = 0
+    _echoed_count = 0
+    _suppress = False
+
+def _set_suppress(value):
+    global _suppress
+    _suppress = bool(value)
+
+def _set_inputs(values):
+    global _input_queue
+    _input_queue.clear()
+    _input_queue.extend(values)
+`;
+
+/* ================================================================
+   ESTADO Y UTILIDADES GLOBALES
+   ================================================================ */
+const State = {
+  pyodide: null,
+  pyodideReady: false,
+  isRunning: false,
+  studentName: localStorage.getItem('pyedu.studentName') || '',
+  theme: localStorage.getItem('pyedu.theme') || 'auto',
+  pendingInput: null,   // { resolve, reject }
+  pendingName: null,
+  pendingConfirm: null,
+  autoScroll: true,
+  currentRunId: 0,
+};
+
+window._pendingPrompt = '';
+
+/* ---------- Helpers DOM ---------- */
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Tema ---------- */
+function applyTheme() {
+  if (State.theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', State.theme);
+  }
+  const btn = $('theme-toggle');
+  if (btn) {
+    btn.textContent = State.theme === 'dark' ? '☀️' : (State.theme === 'light' ? '🌙' : '🌗');
+    btn.setAttribute('aria-label',
+      State.theme === 'dark' ? 'Cambiar a tema claro'
+      : State.theme === 'light' ? 'Cambiar a tema oscuro'
+      : 'Cambiar tema (auto)');
+  }
+}
+function cycleTheme() {
+  const order = ['auto', 'light', 'dark'];
+  const idx = order.indexOf(State.theme);
+  State.theme = order[(idx + 1) % order.length];
+  try { localStorage.setItem('pyedu.theme', State.theme); } catch (e) {}
+  applyTheme();
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function showToast(msg, duration = 2200) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+/* ---------- Status bar ---------- */
+function setStatus(text, kind = '') {
+  const bar = $('status-bar');
+  const span = $('status-text');
+  bar.classList.remove('loading', 'ready', 'running', 'error');
+  if (kind) bar.classList.add(kind);
+  span.textContent = text;
+}
+
+/* ---------- Modales: apertura/cierre genérico ---------- */
+function openModal(id) {
+  document.body.classList.add('modal-open');
+  $(id).hidden = false;
+}
+function closeModal(id) {
+  $(id).hidden = true;
+  // Si no quedan modales abiertos, quitamos bloqueo de scroll
+  const anyOpen = document.querySelector('.modal:not([hidden])');
+  if (!anyOpen) document.body.classList.remove('modal-open');
+}
+
+/* ================================================================
+   MODAL DE INPUT (reemplaza window.prompt)
+   ================================================================ */
+function showInputModal(promptText) {
+  return new Promise((resolve, reject) => {
+    State.pendingInput = { resolve, reject };
+    $('input-prompt-display').textContent = promptText || '(sin mensaje)';
+    $('input-field').value = '';
+    openModal('modal-input');
+
+    // Foco diferido para que iOS muestre el teclado correctamente
+    setTimeout(() => {
+      const f = $('input-field');
+      try { f.focus({ preventScroll: false }); } catch (e) { f.focus(); }
+      // Scroll para asegurar visibilidad con teclado abierto
+      try { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+    }, 80);
+  });
+}
+function resolveInputModal(value) {
+  if (!State.pendingInput) return;
+  const p = State.pendingInput;
+  State.pendingInput = null;
+  closeModal('modal-input');
+  p.resolve(value);
+}
+function rejectInputModal(reason) {
+  if (!State.pendingInput) return;
+  const p = State.pendingInput;
+  State.pendingInput = null;
+  closeModal('modal-input');
+  p.reject(reason || new Error('Input cancelled'));
+}
+
+/* ================================================================
+   CONSOLA: manejo de marcadores y streaming
+   ================================================================ */
+const MARKER_RE = /\x00\x01([A-Z]+)\x01([\s\S]*?)\x01\x00/g;
+
+function appendConsole(text, cls) {
+  if (!text) return;
+  const out = $('console-output');
+  const span = document.createElement('span');
+  span.className = cls;
+  span.textContent = text;
+  out.appendChild(span);
+  if (State.autoScroll) out.scrollTop = out.scrollHeight;
+}
+
+function handleStream(text, kind) {
+  // kind: 'stdout' | 'stderr'
+  if (!text) return;
+
+  // Detectar marcadores (PROMPT / INPUT) embebidos en el stream
+  let lastIndex = 0;
+  let match;
+  MARKER_RE.lastIndex = 0;
+
+  while ((match = MARKER_RE.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      const before = text.slice(lastIndex, match.index);
+      appendConsole(before, kind === 'stderr' ? 'out-error' : 'out-normal');
+    }
+    const type = match[1];
+    const payload = match[2];
+    if (type === 'PROMPT') appendConsole(payload, 'out-prompt');
+    else if (type === 'INPUT') appendConsole(payload, 'out-input');
+    else appendConsole(payload, 'out-normal');
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    const rest = text.slice(lastIndex);
+    appendConsole(rest, kind === 'stderr' ? 'out-error' : 'out-normal');
+  }
+}
+
+function clearConsole() {
+  $('console-output').innerHTML = '';
+}
+
+function appendSystemLine(text) {
+  appendConsole(text + '\n', 'out-system');
+}
+
+/* ================================================================
+   INICIALIZACIÓN DE PYODIDE
+   ================================================================ */
+async function initPyodide() {
+  setStatus('Cargando Python… (puede tardar en la primera carga)', 'loading');
+  try {
+    if (typeof loadPyodide !== 'function') {
+      throw new Error('Pyodide no se cargó. Comprueba tu conexión a internet.');
+    }
+    State.pyodide = await loadPyodide({
+      indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+      stdout: () => {},   // redirigimos manualmente abajo
+      stderr: () => {},
+    });
+
+    // Redirección de streams
+    State.pyodide.setStdout({ batched: (s) => handleStream(s, 'stdout') });
+    State.pyodide.setStderr({ batched: (s) => handleStream(s, 'stderr') });
+
+    // Bootstrap de input() personalizado
+    await State.pyodide.runPythonAsync(PYTHON_BOOTSTRAP);
+
+    State.pyodideReady = true;
+    $('btn-run').disabled = false;
+    setStatus('Python listo ✓', 'ready');
+  } catch (err) {
+    console.error('Error cargando Pyodide:', err);
+    setStatus('Error al cargar Python: ' + (err?.message || err), 'error');
+    appendSystemLine('❌ No se pudo inicializar Python. Recarga la página o revisa tu conexión.');
+  }
+}
+
+/* ================================================================
+   EJECUCIÓN DE CÓDIGO CON ESTRATEGIA INTERRUMPIR-REINTENTAR
+   ================================================================
+
+   Problema: input() es síncrono en Python; no se puede esperar
+   una promesa JS desde dentro sin transformar el código.
+
+   Solución robusta para GitHub Pages (sin COOP/COEP, sin workers,
+   sin Atomics): se lanza la ejecución; si input() no tiene valor
+   en cola, lanza __NEED_INPUT__; JS muestra el modal, guarda el
+   valor y RE-EJECUTA el script desde el principio con la cola
+   ampliada. Para evitar duplicar la salida ya mostrada se usa el
+   flag `_suppress` combinado con `_echoed_count`.
+   ================================================================ */
+async function runCode() {
+  if (!State.pyodideReady || State.isRunning) return;
+
+  const code = $('code-editor').value;
+  if (!code.trim()) {
+    showToast('Escribe algo de código primero');
+    return;
+  }
+
+  State.isRunning = true;
+  $('btn-run').disabled = true;
+  clearConsole();
+  setStatus('Ejecutando…', 'running');
+
+  const runId = ++State.currentRunId;
+  const inputValues = [];
+  let firstRun = true;
+  let cancelled = false;
+
+  try {
+    // Resetear sesión (echoed_count incluido)
+    await State.pyodide.runPythonAsync(`
+_reset_session()
+_echoed_count = 0
+`);
+
+    while (true) {
+      if (State.currentRunId !== runId) { cancelled = true; break; }
+
+      // Preparar cola e indicador de supresión para esta pasada
+      await State.pyodide.runPythonAsync(`
+_input_queue.clear()
+_input_index = 0
+_echoed_count = 0 if ${firstRun ? 'True' : 'False'} else _echoed_count
+_suppress = ${firstRun ? 'False' : 'True'}
+`);
+      // (Nota: en primera pasada echoed=0; en replays conservamos echoed)
+      if (firstRun) {
+        await State.pyodide.runPythonAsync(`_echoed_count = 0`);
+      }
+
+      // Cargar valores ya recogidos
+      if (inputValues.length > 0) {
+        State.pyodide.globals.set('__cached_inputs_json', JSON.stringify(inputValues));
+        await State.pyodide.runPythonAsync(`
+import json as _json
+_input_queue.extend(_json.loads(__cached_inputs_json))
+del __cached_inputs_json
+`);
+      }
+
+      try {
+        await State.pyodide.runPythonAsync(code);
+        // Éxito
+        break;
+      } catch (err) {
+        const msg = (err && (err.message || err.toString())) || '';
+        if (msg.includes('__NEED_INPUT__')) {
+          // Pedir valor al usuario
+          const promptText = window._pendingPrompt || '';
+          let value;
+          try {
+            value = await showInputModal(promptText);
+          } catch (cancelErr) {
+            cancelled = true;
+            appendSystemLine('\n[Entrada cancelada por el usuario]');
+            break;
+          }
+          inputValues.push(String(value));
+          firstRun = false;
+          continue;
+        }
+        // Error real de Python
+        appendConsole('\n', 'out-error');
+        appendConsole(cleanPyError(msg), 'out-error');
+        appendConsole('\n', 'out-error');
+        setStatus('Error de ejecución', 'error');
+        break;
+      }
+    }
+
+    if (!cancelled && State.currentRunId === runId) {
+      if (firstRun) {
+        // Significa que terminó sin inputs
+        setStatus('Ejecución completada ✓', 'ready');
+      } else {
+        setStatus('Ejecución completada ✓', 'ready');
+      }
+    }
+  } catch (outerErr) {
+    console.error('Error inesperado en ejecución:', outerErr);
+    appendConsole('\nError inesperado: ' + (outerErr?.message || outerErr) + '\n', 'out-error');
+    setStatus('Error inesperado', 'error');
+  } finally {
+    if (State.currentRunId === runId) {
+      State.isRunning = false;
+      $('btn-run').disabled = false;
+    }
+  }
+}
+
+function cleanPyError(msg) {
+  // Pyodide suele prefijar "PythonError: "
+  let s = String(msg);
+  s = s.replace(/^PythonError:\s*/i, '');
+  // Quitar referencia al marcador interno si se filtrara
+  s = s.replace(/RuntimeError:\s*__NEED_INPUT__/g, '(entrada pendiente)');
+  return s;
+}
+
+/* ================================================================
+   GESTIÓN DE ARCHIVOS: FileReader + fallback pegar
+   ================================================================ */
+function handleFileUpload(file) {
+  if (!file) return;
+  setStatus('Leyendo archivo…', 'running');
+  const reader = new FileReader();
+
+  reader.onload = (ev) => {
+    try {
+      const content = String(ev.target.result || '');
+      $('code-editor').value = content;
+      updateCodeStats();
+      setStatus('Archivo cargado: ' + file.name, 'ready');
+      showToast('Archivo cargado: ' + file.name);
+    } catch (e) {
+      console.error(e);
+      setStatus('Error procesando archivo', 'error');
+      showToast('Error procesando archivo');
+    }
+  };
+  reader.onerror = (ev) => {
+    const errMsg = reader.error?.message || 'Error desconocido';
+    console.error('FileReader error:', reader.error);
+    setStatus('Error leyendo archivo: ' + errMsg, 'error');
+    showToast('No se pudo leer el archivo');
+  };
+  reader.onabort = () => {
+    setStatus('Lectura cancelada', '');
+  };
+
+  try {
+    reader.readAsText(file, 'UTF-8');
+  } catch (e) {
+    console.error('readAsText fallo:', e);
+    setStatus('Error iniciando lectura del archivo', 'error');
+    showToast('Usa "Pegar código" como alternativa');
+  }
+}
+
+function updateCodeStats() {
+  const code = $('code-editor').value;
+  const lines = code ? code.split('\n').length : 0;
+  const stats = $('code-stats');
+  if (stats) stats.textContent = lines + (lines === 1 ? ' línea' : ' líneas');
+}
+
+/* ================================================================
+   EXPORTACIÓN PDF CON jsPDF
+   ================================================================ */
+function ensureStudentName() {
+  return new Promise((resolve) => {
+    if (State.studentName) { resolve(State.studentName); return; }
+    State.pendingName = resolve;
+    $('name-field').value = '';
+    openModal('modal-name');
+    setTimeout(() => {
+      const f = $('name-field');
+      try { f.focus({ preventScroll: false }); } catch (e) {}
+    }, 80);
+  });
+}
+
+async function exportPDF() {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    showToast('jsPDF no está disponible');
+    return;
+  }
+  const name = await ensureStudentName();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+
+  const margin = 15;
+  const pageW = 210;
+  const pageH = 297;
+  const usableW = pageW - margin * 2;
+  const lineH = 4.2;
+  const bottomLimit = pageH - 20;
+  let y = 20;
+
+  // Cabecera
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(17);
+  doc.text('Reporte de Ejecución Python', margin, y);
+  y += 9;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10.5);
+  doc.text('Alumno: ' + (name || '(sin nombre)'), margin, y);
+  y += 5.5;
+  const now = new Date();
+  doc.text('Fecha: ' + now.toLocaleString('es-ES'), margin, y);
+  y += 5.5;
+  doc.text('Plataforma: Python en el Navegador (Pyodide v0.26.4)', margin, y);
+  y += 8;
+
+  doc.setDrawColor(200);
+  doc.line(margin, y - 2, pageW - margin, y - 2);
+  y += 2;
+
+  const code = $('code-editor').value || '';
+  const consoleText = $('console-output').innerText || '';
+
+  // Sección: código
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('Código fuente', margin, y);
+  y += 6;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(8.5);
+
+  const codeLines = code.split('\n');
+  for (const rawLine of codeLines) {
+    const wrapped = doc.splitTextToSize(rawLine || ' ', usableW);
+    for (const w of wrapped) {
+      if (y > bottomLimit) {
+        doc.addPage();
+        y = 20;
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(8.5);
+      }
+      doc.text(w, margin, y);
+      y += lineH;
+    }
+  }
+
+  y += 4;
+  if (y > bottomLimit - 10) { doc.addPage(); y = 20; }
+
+  // Sección: resultado
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('Resultado de la consola', margin, y);
+  y += 6;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(8.5);
+
+  const consLines = consoleText.split('\n');
+  for (const rawLine of consLines) {
+    const wrapped = doc.splitTextToSize(rawLine || ' ', usableW);
+    for (const w of wrapped) {
+      if (y > bottomLimit) {
+        doc.addPage();
+        y = 20;
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(8.5);
+      }
+      doc.text(w, margin, y);
+      y += lineH;
+    }
+  }
+
+  // Pie de página
+  const totalPages = doc.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text(
+      'Página ' + p + ' de ' + totalPages + ' · Generado por Plataforma Educativa Python',
+      margin,
+      pageH - 10
+    );
+    doc.setTextColor(0);
+  }
+
+  const safeName = (name || 'alumno').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  doc.save(`reporte-python-${safeName}-${ts}.pdf`);
+  showToast('PDF generado correctamente');
+}
+
+/* ================================================================
+   MODAL DE CONFIRMACIÓN GENÉRICO
+   ================================================================ */
+function confirmDialog(title, message) {
+  return new Promise((resolve) => {
+    $('confirm-title').textContent = title;
+    $('confirm-message').textContent = message;
+    State.pendingConfirm = resolve;
+    openModal('modal-confirm');
+  });
+}
+
+/* ================================================================
+   LISTENERS
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme();
+
+  // Badge del alumno
+  function refreshStudentBadge() {
+    const b = $('student-badge');
+    if (State.studentName) {
+      b.textContent = '👤 ' + State.studentName;
+      b.classList.add('visible');
+      b.title = 'Alumno: ' + State.studentName + ' (clic para cambiar)';
+    } else {
+      b.classList.remove('visible');
+    }
+  }
+  refreshStudentBadge();
+
+  $('student-badge').addEventListener('click', async () => {
+    await ensureStudentName();
+    refreshStudentBadge();
+  });
+
+  // Tema
+  $('theme-toggle').addEventListener('click', cycleTheme);
+
+  // Editor: stats
+  $('code-editor').addEventListener('input', updateCodeStats);
+  updateCodeStats();
+
+  // Editor: Ctrl/Cmd + Enter para ejecutar
+  $('code-editor').addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runCode();
+    }
+  });
+
+  // Botón subir archivo
+  $('btn-upload').addEventListener('click', () => {
+    const inp = $('file-input');
+    try { inp.click(); } catch (e) {
+      console.error(e);
+      showToast('Usa "Pegar código" como alternativa');
+    }
+  });
+
+  // File input change
+  $('file-input').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) handleFileUpload(file);
+    // Resetear para permitir subir el mismo archivo otra vez
+    try { e.target.value = ''; } catch (err) {}
+  });
+
+  // Botón pegar código
+  $('btn-paste').addEventListener('click', () => {
+    $('paste-field').value = '';
+    openModal('modal-paste');
+    setTimeout(() => {
+      const f = $('paste-field');
+      try { f.focus({ preventScroll: false }); } catch (e) {}
+    }, 80);
+  });
+  $('paste-cancel').addEventListener('click', () => closeModal('modal-paste'));
+  $('paste-submit').addEventListener('click', () => {
+    const txt = $('paste-field').value;
+    if (!txt.trim()) {
+      showToast('No hay código para cargar');
+      return;
+    }
+    $('code-editor').value = txt;
+    updateCodeStats();
+    closeModal('modal-paste');
+    showToast('Código cargado');
+    setStatus('Código cargado desde portapapeles', 'ready');
+  });
+
+  // Botón ejecutar
+  $('btn-run').addEventListener('click', runCode);
+
+  // Botón limpiar todo
+  $('btn-clear').addEventListener('click', async () => {
+    const ok = await confirmDialog('Limpiar todo', '¿Borrar el código del editor y la consola?');
+    if (!ok) return;
+    $('code-editor').value = '';
+    clearConsole();
+    updateCodeStats();
+    setStatus('Lienzo limpio', 'ready');
+  });
+
+  // Botón limpiar consola
+  $('btn-clear-console').addEventListener('click', () => {
+    clearConsole();
+  });
+
+  // Botón PDF
+  $('btn-pdf').addEventListener('click', () => {
+    exportPDF().catch((e) => {
+      console.error(e);
+      showToast('Error generando PDF');
+    });
+  });
+
+  // Modal input — listeners
+  $('input-submit').addEventListener('click', () => {
+    const v = $('input-field').value;
+    resolveInputModal(v);
+  });
+  $('input-cancel').addEventListener('click', () => {
+    rejectInputModal(new Error('cancelled'));
+  });
+  $('input-field').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('input-submit').click();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      $('input-cancel').click();
+    }
+  });
+
+  // Modal name — listeners
+  $('name-submit').addEventListener('click', () => {
+    const v = $('name-field').value.trim();
+    if (!v) { showToast('Introduce un nombre'); return; }
+    State.studentName = v;
+    try { localStorage.setItem('pyedu.studentName', v); } catch (e) {}
+    closeModal('modal-name');
+    refreshStudentBadge();
+    if (State.pendingName) {
+      const r = State.pendingName;
+      State.pendingName = null;
+      r(v);
+    }
+  });
+  $('name-cancel').addEventListener('click', () => {
+    closeModal('modal-name');
+    if (State.pendingName) {
+      const r = State.pendingName;
+      State.pendingName = null;
+      // Si cancela, devolvemos vacío para que el PDF use "(sin nombre)"
+      r(State.studentName || '');
+    }
+  });
+  $('name-field').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); $('name-submit').click(); }
+    else if (e.key === 'Escape') { e.preventDefault(); $('name-cancel').click(); }
+  });
+
+  // Modal confirm — listeners
+  $('confirm-ok').addEventListener('click', () => {
+    closeModal('modal-confirm');
+    if (State.pendingConfirm) {
+      const r = State.pendingConfirm;
+      State.pendingConfirm = null;
+      r(true);
+    }
+  });
+  $('confirm-cancel').addEventListener('click', () => {
+    closeModal('modal-confirm');
+    if (State.pendingConfirm) {
+      const r = State.pendingConfirm;
+      State.pendingConfirm = null;
+      r(false);
+    }
+  });
+
+  // Auto-scroll inteligente de la consola
+  const out = $('console-output');
+  out.addEventListener('scroll', () => {
+    State.autoScroll =
+      out.scrollTop + out.clientHeight >= out.scrollHeight - 30;
+  });
+
+  // Cerrar modales con click en fondo (excepto input, que tiene sus botones)
+  document.querySelectorAll('.modal').forEach((m) => {
+    m.addEventListener('click', (e) => {
+      if (e.target === m) {
+        if (m.id === 'modal-input') rejectInputModal(new Error('cancelled'));
+        else if (m.id === 'modal-name') $('name-cancel').click();
+        else if (m.id === 'modal-confirm') $('confirm-cancel').click();
+        else m.hidden = true;
+      }
+    });
+  });
+
+  // Iniciar Pyodide
+  initPyodide();
+});
+</script>
+</body>
+</html>
