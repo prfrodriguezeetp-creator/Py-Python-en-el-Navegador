@@ -1,0 +1,2 @@
+# Py-Python-en-el-Navegador
+ENTRADA DE DATOS (INPUT/STDIN) COMPATIBLE
